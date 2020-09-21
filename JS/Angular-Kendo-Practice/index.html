@@ -1,0 +1,306 @@
+<!-- Необходимо реализовать минимум три (максимум – все) функции из следующего списка:
+
+1)     Добавить в список выбора языков Русский
+
+2)     При выборе русского языка переводить все элементы интерфейса
+
+3)     Добавить два поля: «День рождения» и «Дата приема на работу» типа «Календарь» с возможностью редактирования через выпадающий календарь
+
+4)     Добавить обработку выбора: если «Дата приема на работу» меньше, чем «День рождения», подсвечивать оба поля красным
+
+5)     Если поле «День рождения» больше, чем текущая дата, подсвечивать строку светло-красным
+
+6)     Добавить выпадающее меню с выбором кол-ва отображаемых на странице строк
+
+7)     Под таблицу добавить элемент Canvas, который нарисует диаграмму типа «Пирог» на данных из столбца Country
+
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <base href="http://demos.telerik.com/kendo-ui/grid/angular">
+    <style>html { font-size: 12px; font-family: Arial, Helvetica, sans-serif; }</style>
+    <title></title>
+      <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <link href="http://cdn.kendostatic.com/2014.2.903/styles/kendo.common.min.css" rel="stylesheet" />
+    <link href="http://cdn.kendostatic.com/2014.2.903/styles/kendo.default.min.css" rel="stylesheet" />
+    <link href="http://cdn.kendostatic.com/2014.2.903/styles/kendo.dataviz.min.css" rel="stylesheet" />
+    <link href="http://cdn.kendostatic.com/2014.2.903/styles/kendo.dataviz.default.min.css" rel="stylesheet" />
+    <script src="http://cdn.kendostatic.com/2014.2.903/js/jquery.min.js"></script>
+    <script src="http://cdn.kendostatic.com/2014.2.903/js/angular.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/bower-angular-translate/2.0.1/angular-translate.min.js"></script>
+    <script src="http://cdn.kendostatic.com/2014.2.903/js/kendo.all.min.js"></script>
+    <script src="http://cdn.kendostatic.com/2014.2.903/js/cultures/kendo.culture.de-DE.min.js"></script>
+    <script src="http://cdn.kendostatic.com/2014.2.903/js/cultures/kendo.culture.en-US.min.js"></script>
+    <script src="http://cdn.kendostatic.com/2014.2.903/js/cultures/kendo.culture.ru-RU.min.js"></script>
+  </head>
+
+  <style>
+    .redCell {
+      background-color: red;
+    }
+
+    .redFont {
+      color: crimson;
+    }
+
+  </style>
+
+  <body>
+    <div id="example" ng-app="KendoDemos">
+      <div ng-controller="MyCtrl">
+        <p>{{ 'TITLE' | translate }}</p>
+        <p>{{ 'FOO' | translate }}</p>
+
+        <!-- the DropDown is used to change the culture -->
+        <kendo-dropdownlist options="dropDownOptions" ng-model="lang"></kendo-dropdownlist>
+
+        <!-- k-rebind="mainGridOptions.language" is used to force the widget update -->
+        <kendo-grid id="grid" options="mainGridOptions" k-rebind="mainGridOptions.language"></kendo-grid>
+
+        <!-- k-rebind="calendarOptions.culture" is used to force the widget update -->
+        <kendo-calendar options="calendarOptions" k-rebind="calendarOptions.culture"></kendo-calendar>
+      </div>
+    </div>
+
+    <div id="chart" style="background: center no-repeat url('https://demos.telerik.com/kendo-ui/content/shared/styles/world-map.png');"></div>
+
+    <script>
+      var app = angular.module("KendoDemos", [ "kendo.directives", "pascalprecht.translate"]);
+
+      //set up the language provider (http://angular-translate.github.io/docs/#/guide)
+      app.config(['$translateProvider', function ($translateProvider) {
+        $translateProvider.translations('en-US', {
+          'TITLE': 'Hello',
+          'FOO': 'This is a paragraph',
+        });
+
+        $translateProvider.translations('de-DE', {
+          'TITLE': 'Hallo',
+          'FOO': 'Dies ist ein Paragraph',
+          'First Name': 'Vorname',
+          'Last Name': 'Nachname',
+          'Country': 'Land',
+          'City': 'Stadt',
+          'Extension': 'Zusätzliche Nummer',
+          'Birth date': 'Geburtsdatum',
+          'Hire date': 'Anstellungsdatum'
+        });
+
+        $translateProvider.translations('ru-RU', {
+          'TITLE': 'Привет',
+          'FOO': 'Это параграф',
+          'First Name': 'Имя',
+          'Last Name': 'Фамилия',
+          'Country': 'Страна',
+          'City': 'Город',
+          'Extension': 'Добавочный номер',
+          'Birth date': 'Дата рождения',
+          'Hire date': 'Дата приёма на работу'
+        })
+
+        $translateProvider.preferredLanguage('en-US');
+      }]);
+
+      function MyCtrl($scope, $translate) {
+
+        $scope.lang = "en-US";
+
+        $scope.calendarOptions = {
+          culture: "en-US"
+        }
+
+        $scope.dropDownOptions = {
+          dataValueField: "value",
+          dataTextField: "text",
+          dataSource : {
+            data: [{value: "en-US", text: "English"}, {value: "de-DE", text:"German"}, {value: "ru-RU", text: "Russian"}]
+          },
+          change: function(){
+
+            /* The kendo.culture.xx-XX.js files can be pre-loaded in the <head> section of the document,
+                    but the kendo.messages.xx-XX.js file should be loaded on demand when the language is about to change */
+
+            /* We are using the jQuery.getScript method to load the messages file 
+                    and use the callback function to change the kendo culture, kendo messages and angular-translate language */
+
+            $.getScript("http://cdn.kendostatic.com/2014.2.903/js/messages/kendo.messages." + $scope.lang + ".min.js", function() {
+
+              /* $scope.$apply should be used in order to notify the $scope for language change */
+              $scope.$apply(function(){
+
+                $translate.use($scope.lang); //change angular-translate language
+                kendo.culture($scope.lang); //change kendo culture
+
+                /* we use dummy language option in order to force the Grid to rebind */
+                $scope.mainGridOptions.language = $scope.lang;
+
+                /* we change the calendar widget culture option in order to force the Calendar to rebind */
+                $scope.calendarOptions.culture = $scope.lang;
+
+              })
+            });
+          }
+        }
+
+        $scope.mainGridOptions = {
+          dataSource: {
+            type: "odata",
+            transport: {
+              read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Employees"
+            },
+            schema: {
+              model: {
+                fields: {
+                  FirstName: { type: "string", editable: false},
+                  LastName: { type: "string", editable: false},
+                  Country: { type: "string", editable: false},
+                  City: { type: "string", editable: false},
+                  Extension: { type: "string", editable: false},
+                  BirthDate: {type: "date", editable: true},
+                  HireDate: {type: "date", editable: true}
+                }
+              }
+            },
+            // pageSize: 5,
+            serverPaging: true,
+            serverSorting: true
+          },
+          sortable: true,
+          pageable: {
+              refresh: true,
+              pageSizes: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+              buttonCount: 1
+          },
+          editable: true,
+          language: "english",
+          columns: [{
+            field: "FirstName",
+            title: "{{'First Name' | translate}}",
+            width: "120px"
+          },{
+            field: "LastName",
+            title: "{{'Last Name' | translate}}",
+            width: "120px"
+          },{
+            field: "Country",
+            title: "{{'Country' | translate}}",
+            width: "120px"
+          },{
+            field: "City",
+            title: "{{'City' | translate}}",
+            width: "120px",
+          },{
+            field: "Extension",
+            title: "{{'Extension' | translate}}",
+            width: "120px"
+          }, {
+            field: "BirthDate",
+            editor: function (container, options) {
+              let input = $("<input/>");
+              input.attr("name", options.field);
+              input.appendTo(container);
+              input.kendoDatePicker({format: "dd/MM/yyyy", change: function () {
+                      // getting row data
+                      let currentRow = options.model;
+                      let birthDateIndex = container.index();
+                      let hireDate = container.closest("tr")[0].childNodes[birthDateIndex + 1];
+                      // class switch
+                      if (currentRow.HireDate < currentRow.BirthDate) {
+                          hireDate.classList.add("redCell");
+                          container[0].classList.add("redCell");
+                      } else {
+                          container[0].classList.remove("redCell");
+                          hireDate.classList.remove("redCell");
+                      }
+                      // task 5 implementation
+                      let date = new Date();
+                      if (date < currentRow.BirthDate) {
+                          container[0].classList.add("redFont");
+                      } else {
+                          container[0].classList.remove("redFont");
+                      }
+
+                  }});
+            },
+            format: "{0: dd/MM/yyyy}",
+            title: "{{'Birth date' | translate}}",
+            width: "120px",
+          }, {
+            field: "HireDate",
+            editor: function (container, options) {
+              let input = $("<input/>");
+              input.attr("name", options.field);
+              input.appendTo(container);
+              input.kendoDatePicker({format: "dd/MM/yyyy", change: function () {
+                      // getting row data
+                      let currentRow = options.model;
+                      let hireDateIndex = container.index();
+                      let birthDate = container.closest("tr")[0].childNodes[hireDateIndex - 1];
+                      // class switch
+                      if (currentRow.HireDate < currentRow.BirthDate) {
+                          birthDate.classList.add("redCell");
+                          container[0].classList.add("redCell");
+                      } else {
+                          container[0].classList.remove("redCell");
+                          birthDate.classList.remove("redCell");
+                      }
+                  }});
+            },
+            format: "{0: dd/MM/yyyy}",
+            title: "{{'Hire date' | translate}}",
+            width: "120px",
+          }]
+        };
+      }
+
+      // TODO
+      function createChart() {
+          let grid = $("#grid");
+          console.log(grid);
+          $("#chart").kendoChart({
+              title: {
+                  position: "bottom",
+                  text: "Share of Internet Population Growth, 2007 - 2012"
+              },
+              legend: {
+                  visible: false
+              },
+              chartArea: {
+                  background: ""
+              },
+              seriesDefaults: {
+                  labels: {
+                      visible: true,
+                      background: "transparent",
+                      template: "#= category #: \n #= value#%"
+                  }
+              },
+              series: [{
+                  type: "pie",
+                  startAngle: 150,
+                  data: [{
+                      category: "Asia",
+                      value: 53.8,
+                      color: "#9de219"
+                  },{
+                      category: "North America",
+                      value: 3.6,
+                      color: "#033939"
+                  }]
+              }],
+              tooltip: {
+                  visible: true,
+                  format: "{0}%"
+              }
+          });
+      }
+
+      $(document).ready(createChart);
+      $(document).bind("kendo:skinChange", createChart);
+
+    </script>
+  </body>
+</html>
