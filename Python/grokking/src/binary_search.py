@@ -1,4 +1,4 @@
-"""Шлифует на отличненько"""
+"""Binary search example"""
 
 
 def binary_search(seq, item):

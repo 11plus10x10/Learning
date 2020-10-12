@@ -43,6 +43,20 @@ fun nameToAscii(name: String): MutableList<String> {
     return result
 }
 
+fun prepareSpaces(ascii: MutableList<String>, status: String) {
+    // ascii length
+    var asciiLength = ascii[0].length
+    for (str in 1..ascii.lastIndex) {
+        if (ascii[str].length > asciiLength) asciiLength = ascii[str].length
+    }
+
+    //ascii spaces
+    val asciiSpaces = if (status.length < asciiLength) arrayOf("  ", " ") else {
+        arrayOf()
+    }
+
+}
+
 fun generateOutput(name: MutableList<String>, status: String) {
     // ASCII + lines made with *
     // Find length of the longest string in name
@@ -109,6 +123,7 @@ fun main() {
     // input
     val name = readLine()!!
     val status = readLine()!!
+
     val ascii = nameToAscii(name.toLowerCase())
 
     println("Enter name and surname: $name")
